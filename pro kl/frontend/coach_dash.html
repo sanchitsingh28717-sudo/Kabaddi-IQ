@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KabaddiIQ Coach Command Center | Silk Dark</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#818cf8",
+                        "primary-dim": "#6366f1",
+                        "on-primary": "#ffffff",
+                        "surface": "#0f172a",
+                        "on-surface": "#f1f5f9",
+                        "surface-container": "#1e293b",
+                        "surface-container-high": "#334155",
+                        "surface-container-highest": "#475569",
+                        "outline": "#64748b",
+                        "error": "#fb7185",
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "12px",
+                        "lg": "12px",
+                        "xl": "16px",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    },
+                    "boxShadow": {
+                        "silk-extruded": "8px 8px 16px #080c16, -4px -4px 12px #1e293b",
+                        "silk-pressed": "inset 4px 4px 8px #080c16, inset -2px -2px 6px #1e293b",
+                        "silk-soft": "0 10px 25px -5px rgba(129, 140, 248, 0.2), 0 8px 10px -6px rgba(129, 140, 248, 0.2)"
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .mat-texture {
+            background-color: #0f172a;
+            background-image: radial-gradient(#818cf815 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+        }
+        .silk-gradient {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+        .silk-card {
+            background: #1e293b;
+            box-shadow: 8px 8px 16px #080c16, -4px -4px 12px #33415550;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .silk-inset {
+            background: #0f172a;
+            box-shadow: inset 4px 4px 8px #080c16, inset -2px -2px 6px #33415530;
+        }
+        .stadium-flare {
+            background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.1) 0%, transparent 60%),
+                        radial-gradient(circle at bottom left, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes drawPath {
+        from { stroke-dasharray: 0 1000; opacity: 0; }
+        to { stroke-dasharray: 1000 1000; opacity: 1; }
+    }
+
+    @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 5px rgba(251, 113, 133, 0.2); }
+        50% { box-shadow: 0 0 15px rgba(251, 113, 133, 0.6); }
+    }
+
+    .animate-fade-up {
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+    }
+
+    .radar-poly {
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+        animation: drawPath 2s ease-out forwards 0.8s;
+    }
+</style></head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary min-h-screen overflow-x-hidden mat-texture">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-surface/80 backdrop-blur-md border-b border-white/5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border-2 border-primary/20 shadow-sm">
+<img alt="Team Logo" class="w-full h-full object-cover" data-alt="Stylized panther sports logo in indigo and silver" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0QfKy4HgXvMxaclA2MgebmCALmRSXTK2IezKX04w9kdY_-pom1NycB1h2pwDicIiRDnri7HpPxXlRvCZkQRsCFlwE1eLk1cBHeUBFqo-PtL8LXPSUhXCGlMmjvnGqCWSFN9Xy6uqYkv0HlJ9NCCIw0rU4OE43ldoY5Kuj5pt585au1UyelI25oHBTULs-T0MtjDVGfyKMfQrIldybwZBI-w1pwzu6pdqfyb-loS_RQ83alm6scyvxqHsJpjHSqG2zLNg9wtKHau7o"/>
+</div>
+<h1 class="text-3xl font-extrabold italic tracking-tight text-primary font-headline">KABADDI IQ</h1>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-8 font-headline font-bold text-xs tracking-wider">
+<a class="text-primary hover:opacity-70 transition-opacity" href="#">LIVE COMMAND</a>
+<a class="text-slate-500 hover:text-primary transition-colors" href="#">STRATEGY</a>
+<a class="text-slate-500 hover:text-primary transition-colors" href="#">ROSTER</a>
+</nav>
+<button class="w-10 h-10 rounded-full silk-card flex items-center justify-center text-primary active:shadow-silk-pressed transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</button>
+</div>
+</header>
+<main class="pt-24 pb-32 px-4 md:px-8 max-w-7xl mx-auto stadium-flare min-h-screen">
+<!-- Hero: Real-time Match Widget -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 animate-fade-up">
+<div class="lg:col-span-8 silk-card rounded-2xl p-8 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4">
+<span class="flex items-center gap-2 bg-error/10 text-error px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest silk-inset border border-error/10 animate-[pulseGlow_2s_infinite]">
+<span class="w-2 h-2 bg-error rounded-full animate-pulse"></span> Live: Phase 2
+                    </span>
+</div>
+<div class="flex flex-col md:flex-row justify-between items-center gap-8 mb-12 mt-6">
+<div class="text-center md:text-left">
+<h2 class="font-headline text-5xl font-black text-on-surface mb-1 tracking-tight">TITANS</h2>
+<p class="font-label text-primary font-bold tracking-[0.2em] text-[10px] uppercase">Home Arena</p>
+</div>
+<div class="flex items-center gap-8">
+<span class="font-headline text-8xl font-black tracking-tighter text-on-surface drop-shadow-sm">34</span>
+<div class="h-20 w-[1px] bg-slate-700 rotate-[20deg]"></div>
+<span class="font-headline text-8xl font-black tracking-tighter text-slate-700">28</span>
+</div>
+<div class="text-center md:text-right">
+<h2 class="font-headline text-5xl font-black text-slate-500 mb-1 tracking-tight">REBELS</h2>
+<p class="font-label text-slate-500 font-bold tracking-[0.2em] text-[10px] uppercase">Challengers</p>
+</div>
+</div>
+<!-- Win Probability Graph Placeholder -->
+<div class="h-40 w-full mt-8 silk-inset rounded-xl p-4 flex flex-col justify-end">
+<div class="flex items-end gap-1.5 h-full">
+<div class="flex-1 bg-primary/10 h-[40%] rounded-t-lg"></div>
+<div class="flex-1 bg-primary/20 h-[45%] rounded-t-lg"></div>
+<div class="flex-1 bg-primary/30 h-[55%] rounded-t-lg"></div>
+<div class="flex-1 bg-primary/40 h-[50%] rounded-t-lg"></div>
+<div class="flex-1 bg-primary h-[70%] rounded-t-lg shadow-silk-soft transition-all duration-1000 ease-out" style="transition: height 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
+<div class="flex-1 bg-primary/80 h-[65%] rounded-t-lg"></div>
+<div class="flex-1 bg-primary/50 h-[75%] rounded-t-lg"></div>
+<div class="flex-1 bg-primary/40 h-[60%] rounded-t-lg"></div>
+<div class="flex-1 bg-primary/20 h-[50%] rounded-t-lg"></div>
+<div class="flex-1 bg-primary/30 h-[45%] rounded-t-lg"></div>
+<div class="flex-1 bg-primary/40 h-[55%] rounded-t-lg"></div>
+<div class="flex-1 bg-primary h-[85%] rounded-t-lg shadow-silk-soft transition-all duration-1000 ease-out" style="transition: height 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
+</div>
+<div class="mt-4 flex justify-between items-center">
+<p class="font-headline text-[10px] font-black tracking-widest text-primary uppercase">Win Probability: 72%</p>
+<div class="h-1 w-32 bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[72%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Contextual Raid Feed -->
+<div class="lg:col-span-4 flex flex-col gap-6">
+<div class="silk-card rounded-2xl p-6 border-l-4 border-primary">
+<div class="flex justify-between items-start mb-6">
+<span class="font-label text-[10px] text-primary font-black tracking-[0.2em] uppercase">Active Raid</span>
+<span class="material-symbols-outlined text-primary silk-inset p-2 rounded-lg scale-90" data-icon="timer">timer</span>
+</div>
+<p class="font-headline text-2xl font-black mb-3 text-on-surface uppercase">AJAY "THE BOLT" V.</p>
+<div class="flex justify-between items-center px-4 py-3 silk-inset rounded-xl">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-500 font-bold uppercase">Raid Count</span>
+<span class="font-bold text-on-surface">14</span>
+</div>
+<div class="h-8 w-[1px] bg-slate-800"></div>
+<div class="flex flex-col text-right">
+<span class="text-[10px] text-slate-500 font-bold uppercase">Success</span>
+<span class="font-bold text-primary">82%</span>
+</div>
+</div>
+</div>
+<div class="silk-inset rounded-2xl p-6 flex-1 flex flex-col justify-center border border-white/5">
+<p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Coach Recommendation</p>
+<p class="font-headline text-lg text-on-surface leading-tight font-medium italic">"Switch to defensive block. Target Raider #7 on next transition."</p>
+<button class="mt-8 w-full py-4 silk-card bg-primary text-slate-950 font-black text-xs tracking-widest rounded-xl hover:scale-[1.02] active:shadow-silk-pressed transition-all border-none hover:shadow-silk-soft hover:brightness-110">
+                        DEPLOY TACTIC
+                    </button>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Performance & Analytics -->
+<section class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 animate-fade-up [animation-delay:200ms]">
+<!-- Heatmap Card -->
+<div class="md:col-span-2 silk-card rounded-2xl p-6 h-80 relative overflow-hidden group">
+<h3 class="font-headline text-lg font-black text-on-surface mb-6 tracking-tight uppercase">Mat Occupancy Heatmap</h3>
+<div class="absolute inset-x-6 bottom-16 top-20 silk-inset rounded-xl overflow-hidden">
+<img alt="Mat Heatmap" class="w-full h-full object-cover mix-blend-screen opacity-50" data-alt="Aerial thermal heatmap visualization of a kabaddi court showing high activity zones in glowing purple and indigo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfXAGhRllfib3f3gYo6fcYie2VmshudQuYK2m_gYM7mGMQ39jodQ4qcNAdBNSI71KTQLRAxjy9_EdQdzhEGegWTy4nHChXNBcBiR43FdP8Tg603MTfBkRf5nvB4tEZrFVTlsiOvFlSkzXd_-N4ss0E-h7f0ZoAc_pWy7irFwBD8u4SZg83_rrw9EZq4JMY-7xgnt4zDBBp1vyAafFUIqVLd4pukO-fEFsa45leJjkFdy3UuU8gYlrDZU9_6GyKWW-Blhsn_meBLfGo"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container/80 to-transparent"></div>
+</div>
+<div class="absolute bottom-6 left-8 flex gap-6">
+<div class="flex items-center gap-2">
+<div class="w-2.5 h-2.5 rounded-full bg-primary shadow-silk-soft"></div>
+<span class="text-[9px] font-black text-on-surface uppercase tracking-widest">High Tension</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2.5 h-2.5 rounded-full bg-slate-600"></div>
+<span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Safe Zone</span>
+</div>
+</div>
+</div>
+<!-- Raider Efficiency -->
+<div class="silk-card rounded-2xl p-6 flex flex-col justify-between">
+<div>
+<h3 class="font-headline text-sm font-black text-on-surface mb-1 tracking-tight uppercase">Raid Efficiency</h3>
+<p class="text-[9px] text-slate-500 font-black tracking-widest uppercase">Team Average</p>
+</div>
+<div class="flex items-baseline gap-1 py-4">
+<span class="font-headline text-7xl font-black text-primary tracking-tighter">68</span>
+<span class="font-headline text-xl font-bold text-primary-dim">%</span>
+</div>
+<div class="w-full h-2 silk-inset rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[68%] rounded-full shadow-silk-soft"></div>
+</div>
+</div>
+<!-- Stamina Alert -->
+<div class="bg-red-950/40 border border-red-500/20 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden shadow-silk-extruded">
+<div class="absolute -right-4 -top-4 opacity-10">
+<span class="material-symbols-outlined text-8xl text-error" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div>
+<h3 class="font-headline text-sm font-black text-error mb-1 uppercase">Stamina Alert</h3>
+<p class="text-[9px] text-error/60 font-black tracking-widest uppercase">Critical Depletion</p>
+</div>
+<div class="my-4">
+<p class="font-black text-on-surface text-lg">P. KUMAR</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-[10px] text-slate-500 font-bold uppercase">Level:</span>
+<span class="text-error font-black">14%</span>
+</div>
+</div>
+<button class="w-full py-3 bg-error text-slate-950 text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-error/20 active:scale-95 transition-transform border-none hover:scale-[1.03] hover:shadow-silk-soft hover:brightness-110 duration-300">
+                    SUBSTITUTE NOW
+                </button>
+</div>
+<!-- Player Spotlight -->
+<div class="md:col-span-2 lg:col-span-1 silk-card rounded-2xl overflow-hidden group">
+<div class="h-40 overflow-hidden relative">
+<img alt="Player" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="Close-up of a muscular kabaddi player with sweat glistening, intense focus in eyes, wearing a dark team jersey" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiCyXWQq-waaNLcqWHCjEzS_G1jXNa_bhnKKTcX8fRDlhzH2G_ERSn_YrBxe3a9l7yI3WzDGTIU0Rh0anrOQkZEbTVQJEOc99dK-WK-F9R1ghyZefNiIA8FcKbiIaB6fkhGBF5zkbL-Ie-J_XsmtmyHHwkzPekJL3Bie_QZpqH8P3PUpopcc1WkKejL-ilbpkuynAt_Ktmn9EL7wTz4s-H94q-rK9Zo1-HJ4tysMvro8HBGuoeR2XdLGs2SEHImcAaBVeK5UomA591"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/20 to-transparent"></div>
+</div>
+<div class="p-6">
+<h3 class="font-headline text-xl font-black mb-1 text-on-surface tracking-tight uppercase">Vikram Singh</h3>
+<p class="text-primary text-[10px] font-black tracking-widest uppercase mb-6">Lead Defender</p>
+<div class="grid grid-cols-2 gap-4">
+<div class="silk-inset p-3 rounded-xl text-center">
+<p class="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Tackles</p>
+<p class="font-headline font-black text-on-surface">12/14</p>
+</div>
+<div class="silk-inset p-3 rounded-xl text-center">
+<p class="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Impact</p>
+<p class="font-headline font-black text-primary">High</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Strategic Graph -->
+<div class="md:col-span-2 lg:col-span-3 silk-card rounded-2xl p-8 flex flex-col md:flex-row gap-10 items-center">
+<div class="flex-1">
+<h3 class="font-headline text-2xl font-black mb-4 text-on-surface tracking-tight uppercase">Tactical Evolution</h3>
+<p class="text-slate-400 text-sm mb-8 leading-relaxed">Real-time analysis of team formation efficacy. Current trend indicates a shift towards aggressive pincer movements.</p>
+<div class="flex gap-4">
+<div class="px-6 py-3 silk-inset rounded-xl">
+<p class="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">Formation</p>
+<p class="font-black text-on-surface">5-1 Split</p>
+</div>
+<div class="px-6 py-3 silk-inset rounded-xl">
+<p class="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">Efficiency</p>
+<p class="font-black text-primary">+14.2%</p>
+</div>
+</div>
+</div>
+<div class="w-full md:w-64 aspect-square silk-inset rounded-full relative flex items-center justify-center border-8 border-surface-container-high/30">
+<!-- Radar chart mock -->
+<div class="absolute inset-8 border border-primary/10 rounded-full"></div>
+<div class="absolute inset-16 border border-primary/10 rounded-full"></div>
+<div class="absolute inset-24 border border-primary/10 rounded-full"></div>
+<svg class="absolute inset-0 w-full h-full p-6 transform -rotate-90 filter drop-shadow-md">
+<polygon class="origin-center radar-poly" fill="rgba(129, 140, 248, 0.1)" points="50,10 90,40 70,90 30,90 10,40" stroke="#818cf8" stroke-linejoin="round" stroke-width="3"></polygon>
+</svg>
+<span class="font-headline text-[9px] font-black text-primary/40 uppercase tracking-[0.3em]">Analytics DNA</span>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-3xl bg-surface/90 backdrop-blur-xl border-t border-white/5 shadow-[0_-10px_40px_rgba(0,0,0,0.3)] flex justify-around items-center h-22 px-4 pb-safe">
+<div class="flex flex-col items-center justify-center text-primary relative px-4 py-2 bg-primary/10 rounded-2xl">
+<span class="material-symbols-outlined mb-1" data-icon="sensors">sensors</span>
+<span class="text-[9px] font-black uppercase tracking-widest">Live</span>
+<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 bg-primary rounded-full"></div>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 opacity-80 hover:opacity-100 transition-all px-4">
+<span class="material-symbols-outlined mb-1" data-icon="analytics">analytics</span>
+<span class="text-[9px] font-black uppercase tracking-widest">Analytics</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 opacity-80 hover:opacity-100 transition-all px-4">
+<span class="material-symbols-outlined mb-1" data-icon="groups">groups</span>
+<span class="text-[9px] font-black uppercase tracking-widest">Teams</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 opacity-80 hover:opacity-100 transition-all px-4">
+<span class="material-symbols-outlined mb-1" data-icon="sports_kabaddi">sports_kabaddi</span>
+<span class="text-[9px] font-black uppercase tracking-widest">Players</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 opacity-80 hover:opacity-100 transition-all px-4">
+<span class="material-symbols-outlined mb-1" data-icon="settings">settings</span>
+<span class="text-[9px] font-black uppercase tracking-widest">Settings</span>
+</div>
+</nav>
+<!-- Floating Action Button: Contextual -->
+<button class="fixed bottom-28 right-6 w-16 h-16 silk-card bg-primary text-slate-950 rounded-full shadow-xl shadow-primary/20 flex items-center justify-center z-40 hover:scale-110 active:shadow-silk-pressed transition-all duration-300 border-none">
+<span class="material-symbols-outlined text-3xl" data-icon="sports_kabaddi" style="font-variation-settings: 'FILL' 1;">sports_kabaddi</span>
+</button>
+</body></html>

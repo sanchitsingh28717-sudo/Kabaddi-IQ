@@ -1,0 +1,27 @@
+# Node
+node_modules/
+dist/
+build/
+.npm/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Generated files
+*.csv
+*.pdf
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
