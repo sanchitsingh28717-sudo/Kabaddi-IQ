@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Trophy, Activity, Target, Shield, Calendar, Search, X, ChevronRight, AlertCircle, RefreshCw } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'https://pro-kl.vercel.app';
+import { predictionService } from '../services/predictionService';
+import { teamService } from '../services/teamService';
 
 export default function AnalystDashboard() {
   const [leagueTable, setLeagueTable] = useState([]);
@@ -21,24 +21,22 @@ export default function AnalystDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const [fRes, ltRes, tRes] = await Promise.all([
-        fetch(`${API_BASE}/api/fixtures/results`),
-        fetch(`${API_BASE}/api/league-table`),
-        fetch(`${API_BASE}/api/teams`),
+      const [fixturesData, leagueTableData, teamsData] = await Promise.all([
+        predictionService.getFixtureResults(),
+        predictionService.getLeagueTable(),
+        teamService.getTeams(),
       ]);
 
-      if (fRes.ok) setFixtures(await fRes.json());
-      if (ltRes.ok) setLeagueTable(await ltRes.json());
-      if (tRes.ok) {
-        const teamsData = await tRes.json();
-        // Shape teams data for the bar chart
-        setTeams(teamsData.map(t => ({
-          name: t.name,
-          raid_points: t.raid_points || t.avg_raid_points || 0,
-          tackle_points: t.tackle_points || t.avg_tackle_points || 0,
-          avg_points_scored: t.avg_points_scored || 0,
-        })));
-      }
+      setFixtures(fixturesData);
+      setLeagueTable(leagueTableData);
+      
+      // Shape teams data for the bar chart
+      setTeams(teamsData.map(t => ({
+        name: t.name,
+        raid_points: t.raid_points || t.avg_raid_points || 0,
+        tackle_points: t.tackle_points || t.avg_tackle_points || 0,
+        avg_points_scored: t.avg_points_scored || 0,
+      })));
     } catch (e) {
       console.error('[AnalystDashboard] fetchData error:', e);
       setError('Could not reach the backend. Make sure the server is running.');

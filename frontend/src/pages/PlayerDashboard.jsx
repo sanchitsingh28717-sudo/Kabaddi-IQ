@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Shield, Zap, Activity, Edit2, Upload, ExternalLink } from 'lucide-react';
 import { Bar, BarChart, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'https://pro-kl.vercel.app';
+import { playerService } from '../services/playerService';
 
 const DEFAULT_PHOTO = "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=1000&auto=format&fit=crop";
 const DEFAULT_THUMBNAIL = "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=600&auto=format&fit=crop";
@@ -38,25 +37,19 @@ export default function PlayerDashboard() {
 
   const fetchPlayers = async (role, pId, tId) => {
     setLoading(true);
-    let url = `${API_BASE}/api/players`;
-    if (role === 'coach' && tId) {
-      url += `?team=${tId}`;
-    }
+    const teamFilter = (role === 'coach' && tId) ? tId : undefined;
     
     try {
-      const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        setPlayers(data);
-        
-        if (role === 'player' && pId) {
-           const myData = data.find(p => p.id === pId);
-           if (myData) {
-             setSelectedPlayer(myData);
-           }
-        } else if (data.length > 0) {
-            setSelectedPlayer(data[0]);
-        }
+      const data = await playerService.getPlayers(undefined, teamFilter);
+      setPlayers(data);
+      
+      if (role === 'player' && pId) {
+         const myData = data.find(p => p.id === pId);
+         if (myData) {
+           setSelectedPlayer(myData);
+         }
+      } else if (data.length > 0) {
+          setSelectedPlayer(data[0]);
       }
     } catch (e) {
       console.error(e);
@@ -106,24 +99,14 @@ export default function PlayerDashboard() {
     setPlayers(players.map(p => p.id === updatedPlayer.id ? updatedPlayer : p));
     setIsEditing(false);
     
-    // Save to Database
-    fetch(`${API_BASE}/api/players/${updatedPlayer.id}`, { 
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-           name: editForm.name,
-           position: editForm.position,
-           photo_url: editForm.photo_url
-        })
-    }).then(async res => {
-        if (!res.ok) {
-            const errInfo = await res.json();
-            console.error("Backend DB Error:", errInfo);
-            alert("Database Error: " + (errInfo.detail || "Could not save modifications."));
-        }
-    }).catch(e => {
-        console.error("Network Error saving profile:", e);
-        alert("Network error. Make sure the backend server is running.");
+    // Save to Database via Service
+    playerService.updatePlayer(updatedPlayer.id, {
+      name: editForm.name,
+      position: editForm.position,
+      photo_url: editForm.photo_url
+    }).catch(err => {
+      console.error("Error saving profile:", err);
+      alert("Error: " + (err.message || "Could not save modifications. Make sure the backend server is running."));
     });
   };
 

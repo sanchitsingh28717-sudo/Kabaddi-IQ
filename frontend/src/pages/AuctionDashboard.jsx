@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Gavel, Search, Filter, Plus, X } from 'lucide-react';
+import { playerService } from '../services/playerService';
 
 export default function AuctionDashboard() {
   const [players, setPlayers] = useState([
@@ -17,37 +18,29 @@ export default function AuctionDashboard() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch('http://localhost:8000/api/players', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newPlayer.name,
-          position: newPlayer.pos,
-          team_id: newPlayer.team
-        })
+      await playerService.createPlayer({
+        name: newPlayer.name,
+        position: newPlayer.pos,
+        team_id: newPlayer.team
       });
-      if(res.ok) {
-        setPlayers([...players, {
-          id: Math.random(),
-          name: newPlayer.name,
-          pos: newPlayer.pos,
-          team: newPlayer.team,
-          form: 90,
-          value: '₹1.0 Cr'
-        }]);
-        setIsAddModalOpen(false);
-        setNewPlayer({ name: '', pos: 'Raider', team: '' });
-      } else {
-        const errorData = await res.json();
-        alert("Failed to add player: " + (errorData.detail || errorData.error || "Check backend logs."));
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Network Error");
+      setPlayers([...players, {
+        id: Math.random(),
+        name: newPlayer.name,
+        pos: newPlayer.pos,
+        team: newPlayer.team,
+        form: 90,
+        value: '₹1.0 Cr'
+      }]);
+      setIsAddModalOpen(false);
+      setNewPlayer({ name: '', pos: 'Raider', team: '' });
+    } catch (error) {
+      console.error(error);
+      alert("Failed to add player: " + (error.message || "Network Error"));
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   return (
     <div className="space-y-6">

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Target, Shield, Clock, Activity, BrainCircuit, Zap, TrendingUp, AlertTriangle, RotateCcw } from 'lucide-react';
+import { teamService } from '../services/teamService';
+import { predictionService } from '../services/predictionService';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://pro-kl.vercel.app';
 
 export default function CoachDashboard() {
   const [loading, setLoading] = useState(false);
@@ -101,8 +102,7 @@ export default function CoachDashboard() {
 
   // ── Fetch teams and initialize lineup on mount ────────────────────────────────────────────────
   useEffect(() => {
-    fetch(`${API_BASE}/api/teams`)
-      .then(r => r.json())
+    teamService.getTeams()
       .then(data => {
         setTeams(data || []);
         if (data && data.length >= 2) {
@@ -118,8 +118,7 @@ export default function CoachDashboard() {
   // Fetch team players and set up lineup
   const fetchTeamPlayers = async (teamId) => {
     try {
-      const response = await fetch(`${API_BASE}/api/teams/${teamId}/players`);
-      const players = await response.json();
+      const players = await teamService.getTeamPlayers(teamId);
       
       if (players && players.length > 0) {
         // Create active lineup (first 7 players) with realistic stamina
@@ -160,6 +159,7 @@ export default function CoachDashboard() {
       initializeDefaultLineup();
     }
   };
+
 
   // Initialize default lineup when no real data available
   const initializeDefaultLineup = () => {
@@ -338,12 +338,7 @@ export default function CoachDashboard() {
             is_second_half: isSecondHalf,
           };
 
-      fetch(`${API_BASE}/api/predict/win-probability`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-        .then(r => r.json())
+      predictionService.predictWinProbability(payload)
         .then(data => setLiveWinProb(data))
         .catch(() => {});
     }, 600);
@@ -353,21 +348,16 @@ export default function CoachDashboard() {
   // ── Debounced timeout advice ────────────────────────────────────────────
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetch(`${API_BASE}/api/predict/timeout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          score_diff: scoreDiff,
-          minutes_remaining: minutesLeft,
-          home_raid_success_rate: homeRaidRate,
-          away_raid_success_rate: awayRaidRate,
-          home_tackle_success_rate: homeTackleRate,
-          away_tackle_success_rate: awayTackleRate,
-          all_outs_home: allOutsHome,
-          is_second_half: isSecondHalf,
-        }),
+      predictionService.predictTimeout({
+        score_diff: scoreDiff,
+        minutes_remaining: minutesLeft,
+        home_raid_success_rate: homeRaidRate,
+        away_raid_success_rate: awayRaidRate,
+        home_tackle_success_rate: homeTackleRate,
+        away_tackle_success_rate: awayTackleRate,
+        all_outs_home: allOutsHome,
+        is_second_half: isSecondHalf,
       })
-        .then(r => r.json())
         .then(data => setTimeoutAdvice(data))
         .catch(() => {});
     }, 800);
@@ -378,12 +368,7 @@ export default function CoachDashboard() {
     if (!selectedHome || !selectedAway || selectedHome === selectedAway) return;
     setOutcomeLoading(true);
     setMatchOutcome(null);
-    fetch(`${API_BASE}/api/predict/match-outcome`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ home_team_id: selectedHome, away_team_id: selectedAway }),
-    })
-      .then(r => r.json())
+    predictionService.predictMatchOutcome(selectedHome, selectedAway)
       .then(data => { setMatchOutcome(data); setOutcomeLoading(false); })
       .catch(() => setOutcomeLoading(false));
   };
@@ -418,16 +403,8 @@ export default function CoachDashboard() {
       };
 
       Promise.all([
-        fetch(`${API_BASE}/api/predict/win-probability`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        }).then(r => r.json()),
-        fetch(`${API_BASE}/api/predict/timeout`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(timeoutPayload),
-        }).then(r => r.json()),
+        predictionService.predictWinProbability(payload),
+        predictionService.predictTimeout(timeoutPayload)
       ])
         .then(([wpData, toData]) => {
           setLiveWinProb(wpData);

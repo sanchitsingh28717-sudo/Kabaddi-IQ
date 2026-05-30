@@ -7,6 +7,8 @@ import {
 } from 'recharts';
 import { ArrowLeft, Zap, Shield, Target, Activity, Award, TrendingUp, Star } from 'lucide-react';
 
+import { playerService } from '../services/playerService';
+
 const DEFAULT_PHOTO = "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=1200&auto=format&fit=crop";
 
 export default function PlayerDetail() {
@@ -18,10 +20,12 @@ export default function PlayerDetail() {
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    fetch(`http://localhost:8000/api/players/${id}`)
-      .then(r => r.json())
+    playerService.getPlayerById(id)
       .then(data => { setPlayer(data); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
   }, [id]);
 
   if (loading) {
@@ -87,13 +91,18 @@ export default function PlayerDetail() {
       </div>
 
       {/* Hero Section */}
-      <div className="relative h-[60vh] min-h-[420px] overflow-hidden">
-        {/* Background image with parallax-like blur */}
+      <div className="relative h-[60vh] min-h-[420px] overflow-hidden group/hero bg-[#0e0e0e]">
+        {/* Ambient blurred full-bleed background layer to prevent empty black bars on the sides */}
+        <img
+          src={p.photo_url || DEFAULT_PHOTO}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover blur-2xl brightness-[0.18] scale-105"
+        />
+        {/* Focused player portrait layer (focuses on face at scale-1.5, zooms out to scale-[1.0] to show body and cover full area on hover) */}
         <img
           src={p.photo_url || DEFAULT_PHOTO}
           alt={p.name}
-          className="absolute inset-0 w-full h-full object-cover scale-110"
-          style={{ filter: 'blur(2px) brightness(0.3)' }}
+          className="absolute inset-0 w-full h-full object-cover object-top scale-[1.5] group-hover/hero:scale-[1.0] transition-all duration-[1200ms] ease-out blur-[1px] brightness-[0.35] group-hover/hero:blur-none group-hover/hero:brightness-[0.8]"
         />
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-[#0e0e0e]/60 to-transparent" />
@@ -150,7 +159,7 @@ export default function PlayerDetail() {
               {p.height && (
                 <div>
                   <p className="text-[9px] text-neutral-500 font-black uppercase tracking-widest">Height</p>
-                  <p className="text-sm font-bold text-white">{p.height} cm</p>
+                  <p className="text-sm font-bold text-white">{p.height.toLowerCase().includes('ft') ? p.height : `${p.height} cm`}</p>
                 </div>
               )}
               {p.weight && (
@@ -170,7 +179,7 @@ export default function PlayerDetail() {
           {statCards.map((s, i) => (
             <div
               key={i}
-              className={`bg-surface-container border border-white/5 rounded-xl p-4 flex flex-col gap-2 hover:border-primary/30 transition-all duration-300 ${s.glow}`}
+              className={`bg-surface-container border border-white/5 rounded-xl p-4 flex flex-col gap-2 hover:border-primary/50 hover:scale-105 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/5 cursor-pointer transition-all duration-300 ${s.glow}`}
             >
               <s.icon className={`w-4 h-4 ${s.color}`} />
               <p className={`text-2xl font-black font-headline ${s.color}`}>{s.value}</p>
@@ -293,7 +302,7 @@ export default function PlayerDetail() {
             </div>
 
             {/* PDR Score explainer */}
-            <div className="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-xl">
+            <div className="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-xl hover:scale-[1.03] hover:-translate-y-1 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 cursor-pointer transition-all duration-300">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-primary" />

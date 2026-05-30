@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import playerCredentials from '../data/player_credentials.json';
 import coachCredentials from '../data/coach_credentials.json';
 import { Activity, ShieldAlert, Mail, Smartphone, KeyRound } from 'lucide-react';
+import { authService } from '../services/authService';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -55,18 +56,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ method: recoveryMethod, contact: contactValue })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Failed to send recovery message');
-      }
-
+      await authService.resetPassword(recoveryMethod, contactValue);
       setStep('verify');
     } catch (error) {
       alert(`Error: ${error.message}`);
@@ -81,17 +71,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contact: contactValue, otp: otpValue })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Failed to verify OTP');
-      }
+      await authService.verifyOtp(contactValue, otpValue);
 
       // Automatically log them in
       localStorage.setItem('pkl_user', JSON.stringify(targetUser));
@@ -107,6 +87,7 @@ export default function ForgotPassword() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface relative overflow-hidden mat-texture">

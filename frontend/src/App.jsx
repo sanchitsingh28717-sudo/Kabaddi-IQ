@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
+import CustomCursor from './components/ui/CustomCursor';
 
 // Mock simple imports until we create them fully
 import Login from './pages/Login';
@@ -14,6 +15,7 @@ import ForgotPassword from './pages/ForgotPassword';
 export default function App() {
   return (
     <BrowserRouter>
+      <CustomCursor />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
