@@ -2,9 +2,16 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Target, Shield, Clock, Activity, BrainCircuit, Zap, TrendingUp, AlertTriangle, RotateCcw } from 'lucide-react';
 import { teamService } from '../services/teamService';
 import { predictionService } from '../services/predictionService';
+import coachCredentials from '../data/coach_credentials.json';
 
 
 export default function CoachDashboard() {
+  // Get logged-in coach info
+  const user = JSON.parse(localStorage.getItem('pkl_user') || '{}');
+  const isCoach = user.role === 'coach';
+  const coachCred = isCoach ? coachCredentials.find(c => c.team_id === user.team_id || c.email === user.email) : null;
+  const coachTeamName = coachCred ? coachCred.team_name : (user.team_name || '');
+
   const [loading, setLoading] = useState(false);
   const [advice, setAdvice] = useState('');
   const [winProbPredict, setWinProbPredict] = useState(null);
@@ -106,14 +113,32 @@ export default function CoachDashboard() {
       .then(data => {
         setTeams(data || []);
         if (data && data.length >= 2) {
-          setSelectedHome(data[0].id);
-          setSelectedAway(data[1].id);
-          // Initialize with first team
-          fetchTeamPlayers(data[0].id);
+          let homeTeamId = data[0].id;
+          let awayTeamId = data[1].id;
+          
+          if (isCoach && coachTeamName) {
+            const myTeam = data.find(t => 
+              t.id === user.team_id || 
+              t.name.toLowerCase() === coachTeamName.toLowerCase()
+            );
+            if (myTeam) {
+              homeTeamId = myTeam.id;
+              // Ensure away team is different from home team
+              const otherTeam = data.find(t => t.id !== myTeam.id);
+              if (otherTeam) {
+                awayTeamId = otherTeam.id;
+              }
+            }
+          }
+          
+          setSelectedHome(homeTeamId);
+          setSelectedAway(awayTeamId);
+          // Initialize with selected home team
+          fetchTeamPlayers(homeTeamId);
         }
       })
       .catch(() => {});
-  }, []);
+  }, [isCoach, coachTeamName]);
 
   // Fetch team players and set up lineup
   const fetchTeamPlayers = async (teamId) => {
@@ -480,7 +505,9 @@ export default function CoachDashboard() {
           
           <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8 mt-6">
             <div className="text-center md:text-left flex-1">
-              <h2 className="font-headline text-5xl md:text-5xl lg:text-4xl xl:text-5xl font-black text-white mb-1 tracking-tight">OWN SQUAD</h2>
+              <h2 className="font-headline text-5xl md:text-5xl lg:text-4xl xl:text-5xl font-black text-white mb-1 tracking-tight truncate max-w-xs md:max-w-none">
+                {isCoach && coachTeamName ? coachTeamName.toUpperCase() : 'OWN SQUAD'}
+              </h2>
               <p className="font-body text-primary font-bold tracking-[0.2em] text-[10px] uppercase">Home Arena</p>
             </div>
             
@@ -824,12 +851,15 @@ export default function CoachDashboard() {
                 <label className="text-[9px] text-primary font-black uppercase tracking-widest block mb-1">Home Team</label>
                 <div className="relative">
                   <select value={selectedHome} onChange={e => setSelectedHome(e.target.value)}
+                    disabled={isCoach}
                     className="bg-surface-container-high border border-white/10 text-white text-xs font-bold rounded-xl px-4 py-3 outline-none transition-all duration-300 min-w-[180px] cursor-pointer appearance-none pr-8
-                    hover:border-primary/60 hover:bg-primary/5 hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] focus:border-primary focus:shadow-[0_0_20px_rgba(99,102,241,0.25)]"
+                    hover:border-primary/60 hover:bg-primary/5 hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] focus:border-primary focus:shadow-[0_0_20px_rgba(99,102,241,0.25)] disabled:opacity-85 disabled:cursor-not-allowed"
                   >
                     {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
-                  <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-primary opacity-60 group-hover:opacity-100 transition-opacity">▾</div>
+                  {!isCoach && (
+                    <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-primary opacity-60 group-hover:opacity-100 transition-opacity">▾</div>
+                  )}
                 </div>
               </div>
 
