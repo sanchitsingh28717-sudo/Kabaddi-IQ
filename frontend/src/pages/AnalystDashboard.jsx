@@ -26,6 +26,15 @@ export default function AnalystDashboard() {
   const [spinnerMatches, setSpinnerMatches] = useState([]);
   const wheelRef = React.useRef(null);
 
+  // 3D Vertical Cylinder Scrolling Gallery States
+  const containerRef = React.useRef(null);
+  const [scrollY, setScrollY] = useState(0);
+
+  const handleScroll = (e) => {
+    setScrollY(e.target.scrollTop);
+  };
+
+
   const handleOpenSpinner = () => {
     // Pick first 8 fixtures or available
     const topMatches = fixtures.slice(0, 8);
@@ -240,60 +249,94 @@ export default function AnalystDashboard() {
             </div>
         </div>
 
-        <div className="overflow-x-auto max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-            <table className="w-full text-sm text-left font-mono">
-              <thead className="text-xs text-kw-outline uppercase tracking-widest bg-kw-surface sticky top-0 z-10 border-b border-kw-surface-variant">
-                <tr>
-                  <th className="px-4 py-4">Timestamp Date</th>
-                  <th className="px-4 py-4">Host Franchise</th>
-                  <th className="px-4 py-4">Visiting Franchise</th>
-                  <th className="px-4 py-4 text-right">Resolution</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredFixtures.length === 0 ? (
-                  <tr>
-                    <td colSpan="4" className="text-center py-8 text-kw-outline uppercase tracking-widest">No entries located in database.</td>
-                  </tr>
-                ) : (
-                  filteredFixtures.map((match, idx) => {
-                    const isTie = match.result_team_id === null;
-                    const homeWon = match.result_team_id === match.home_team_id;
-                    const awayWon = match.result_team_id === match.away_team_id;
+        {/* Table Header Row (Static above the 3D scroll) */}
+        <div className="grid grid-cols-4 px-6 py-3 bg-white/[0.02] border-y border-white/5 text-[9px] font-black uppercase tracking-[0.25em] text-neutral-500 mb-2 font-mono">
+          <div>Timestamp Date</div>
+          <div>Host Franchise</div>
+          <div>Visiting Franchise</div>
+          <div className="text-right">Resolution</div>
+        </div>
 
-                    return (
-                      <tr 
-                        key={match.id || idx} 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setRadialCoords({ x: e.clientX, y: e.clientY });
-                          setRadialMatch(match);
-                          setRadialPrediction(null);
-                        }}
-                        className="border-b border-kw-surface-variant hover:bg-kw-surface transition-colors cursor-pointer"
-                      >
-                        <td className="px-4 py-4 text-kw-outline-variant whitespace-nowrap">{match.date}</td>
-                        <td className={`px-4 py-4 font-bold uppercase tracking-wide ${homeWon ? 'text-kw-primary' : 'text-white'}`}>
-                          {match.home?.name || 'UNKNOWN'}
-                        </td>
-                        <td className={`px-4 py-4 font-bold uppercase tracking-wide ${awayWon ? 'text-kw-primary' : 'text-white'}`}>
-                          {match.away?.name || 'UNKNOWN'}
-                        </td>
-                        <td className="px-4 py-4 text-right font-bold uppercase tracking-wide">
-                          {isTie ? (
-                            <span className="text-kw-outline">STALEMATE</span>
-                          ) : (
-                            <span className="text-kw-secondary glow-secondary">
-                              {homeWon ? match.home?.name : match.away?.name}
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+        {/* 🌀 3D Spinning Cylinder Gallery Scroll Container */}
+        <div 
+          ref={containerRef}
+          onScroll={handleScroll}
+          className="relative max-h-[350px] h-[350px] overflow-y-auto overflow-x-hidden pr-2 custom-scrollbar px-2 py-4"
+          style={{ perspective: '1000px' }}
+        >
+          <div className="flex flex-col gap-3 py-16" style={{ transformStyle: 'preserve-3d' }}>
+            {filteredFixtures.length === 0 ? (
+              <div className="text-center py-12 text-kw-outline uppercase tracking-widest font-mono text-xs">
+                No entries located in database.
+              </div>
+            ) : (
+              filteredFixtures.map((match, idx) => {
+                const itemHeight = 76; // Card height + gap
+                const visibleHeight = 290;
+                const centerOffset = visibleHeight / 2;
+                
+                // Calculate distance of item from scrolled center
+                const itemCenter = idx * itemHeight;
+                const dist = itemCenter - scrollY - centerOffset + 38;
+                const ratio = dist / centerOffset;
+                
+                // 3D physics calculations for vertical cylinder drum rotation
+                const angle = Math.min(65, Math.max(-65, ratio * 48)); // Rotate up to 48deg
+                const translateZ = -Math.abs(ratio) * 65; // Recede in 3D depth
+                const translateY = ratio * 8; // Organic vertical shift
+                const scale = 1 - Math.min(0.12, Math.abs(ratio) * 0.08);
+                const opacity = 1 - Math.min(0.8, Math.abs(ratio) * 0.65);
+                
+                const isTie = match.result_team_id === null;
+                const homeWon = match.result_team_id === match.home_team_id;
+                const awayWon = match.result_team_id === match.away_team_id;
+
+                return (
+                  <div 
+                    key={match.id || idx}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setRadialCoords({ x: e.clientX, y: e.clientY });
+                      setRadialMatch(match);
+                      setRadialPrediction(null);
+                    }}
+                    className="grid grid-cols-4 items-center p-4 rounded-xl border border-white/5 bg-white/[0.02] backdrop-blur hover:bg-white/[0.08] hover:border-primary/40 transition-all duration-300 cursor-pointer text-xs font-mono text-white text-left h-[64px] shadow-lg shadow-black/20"
+                    style={{
+                      transform: `rotateX(${angle}deg) translateZ(${translateZ}px) translateY(${translateY}px) scale(${scale})`,
+                      opacity: opacity,
+                      transformOrigin: 'center center',
+                      transformStyle: 'preserve-3d',
+                      backfaceVisibility: 'hidden'
+                    }}
+                  >
+                    {/* Date */}
+                    <div className="text-neutral-500 uppercase tracking-widest">{match.date}</div>
+                    
+                    {/* Host */}
+                    <div className={`font-bold uppercase tracking-wide truncate ${homeWon ? 'text-primary' : 'text-white'}`}>
+                      {match.home?.name || 'UNKNOWN'}
+                    </div>
+                    
+                    {/* Visitor */}
+                    <div className={`font-bold uppercase tracking-wide truncate ${awayWon ? 'text-primary' : 'text-white'}`}>
+                      {match.away?.name || 'UNKNOWN'}
+                    </div>
+                    
+                    {/* Resolution */}
+                    <div className="text-right font-black uppercase tracking-widest">
+                      {isTie ? (
+                        <span className="text-neutral-600">STALEMATE</span>
+                      ) : (
+                        <span className="text-secondary glow-secondary">
+                          {homeWon ? match.home?.name : match.away?.name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
 
