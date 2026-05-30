@@ -26,13 +26,59 @@ export default function AnalystDashboard() {
   const [spinnerMatches, setSpinnerMatches] = useState([]);
   const wheelRef = React.useRef(null);
 
-  // 3D Vertical Cylinder Scrolling Gallery States
+  // 3D Vertical Cylinder Scrolling Gallery States (Decoupled from state for buttery smooth 60fps+ rendering)
   const containerRef = React.useRef(null);
-  const [scrollY, setScrollY] = useState(0);
 
-  const handleScroll = (e) => {
-    setScrollY(e.target.scrollTop);
+  const handleScroll = React.useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    
+    const scrollTop = container.scrollTop;
+    const cards = container.querySelectorAll('.cylinder-card');
+    const itemHeight = 76; // Card height + gap
+    const visibleHeight = 290;
+    const centerOffset = visibleHeight / 2;
+
+    cards.forEach((card, idx) => {
+      const itemCenter = idx * itemHeight;
+      const dist = itemCenter - scrollTop - centerOffset + 38;
+      const ratio = dist / centerOffset;
+
+      // 3D calculations for cylindrical vertical roll drum rotation
+      const angle = Math.min(65, Math.max(-65, ratio * 48)); // Rotate up to 48deg
+      const translateZ = -Math.abs(ratio) * 65; // Recede in 3D depth
+      const translateY = ratio * 8; // Organic vertical shift
+      const scale = 1 - Math.min(0.12, Math.abs(ratio) * 0.08);
+      const opacity = 1 - Math.min(0.8, Math.abs(ratio) * 0.65);
+
+      card.style.transform = `rotateX(${angle}deg) translateZ(${translateZ}px) translateY(${translateY}px) scale(${scale})`;
+      card.style.opacity = opacity;
+    });
+  }, []);
+
+  const handleCardHover = (index) => {
+    const container = containerRef.current;
+    if (!container || isSpinning) return;
+
+    const cardHeight = 76;
+    const visibleHeight = 290;
+    const targetScrollTop = (index * cardHeight) - (visibleHeight / 2) + 38;
+
+    // Magnetic smooth snap to cylinder center
+    container.scrollTo({
+      top: targetScrollTop,
+      behavior: 'smooth'
+    });
   };
+
+  // Synchronize 3D curves on load and search updates
+  useEffect(() => {
+    if (fixtures.length > 0) {
+      const timer = setTimeout(handleScroll, 80);
+      return () => clearTimeout(timer);
+    }
+  }, [fixtures, searchTerm, handleScroll]);
+
 
 
   const handleOpenSpinner = () => {
@@ -271,22 +317,6 @@ export default function AnalystDashboard() {
               </div>
             ) : (
               filteredFixtures.map((match, idx) => {
-                const itemHeight = 76; // Card height + gap
-                const visibleHeight = 290;
-                const centerOffset = visibleHeight / 2;
-                
-                // Calculate distance of item from scrolled center
-                const itemCenter = idx * itemHeight;
-                const dist = itemCenter - scrollY - centerOffset + 38;
-                const ratio = dist / centerOffset;
-                
-                // 3D physics calculations for vertical cylinder drum rotation
-                const angle = Math.min(65, Math.max(-65, ratio * 48)); // Rotate up to 48deg
-                const translateZ = -Math.abs(ratio) * 65; // Recede in 3D depth
-                const translateY = ratio * 8; // Organic vertical shift
-                const scale = 1 - Math.min(0.12, Math.abs(ratio) * 0.08);
-                const opacity = 1 - Math.min(0.8, Math.abs(ratio) * 0.65);
-                
                 const isTie = match.result_team_id === null;
                 const homeWon = match.result_team_id === match.home_team_id;
                 const awayWon = match.result_team_id === match.away_team_id;
@@ -300,13 +330,14 @@ export default function AnalystDashboard() {
                       setRadialMatch(match);
                       setRadialPrediction(null);
                     }}
-                    className="grid grid-cols-4 items-center p-4 rounded-xl border border-white/5 bg-white/[0.02] backdrop-blur hover:bg-white/[0.08] hover:border-primary/40 transition-all duration-300 cursor-pointer text-xs font-mono text-white text-left h-[64px] shadow-lg shadow-black/20"
+                    onMouseEnter={() => handleCardHover(idx)}
+                    className="cylinder-card grid grid-cols-4 items-center p-4 rounded-xl border border-white/5 bg-white/[0.02] backdrop-blur hover:bg-white/[0.08] hover:border-primary/60 hover:scale-[1.12] transition-all duration-300 ease-out cursor-pointer text-xs font-mono text-white text-left h-[64px] shadow-lg shadow-black/20"
                     style={{
-                      transform: `rotateX(${angle}deg) translateZ(${translateZ}px) translateY(${translateY}px) scale(${scale})`,
-                      opacity: opacity,
                       transformOrigin: 'center center',
                       transformStyle: 'preserve-3d',
-                      backfaceVisibility: 'hidden'
+                      backfaceVisibility: 'hidden',
+                      transform: 'rotateX(0deg) translateZ(0px) translateY(0px) scale(1)', // Initial, updated by handleScroll on mount
+                      opacity: 1
                     }}
                   >
                     {/* Date */}
