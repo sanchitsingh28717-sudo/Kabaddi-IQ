@@ -34,12 +34,18 @@ def _load_csv_fallback():
     """Load player, team, league standings, and fixtures data from offline CSV fallback files."""
     global CSV_TEAMS, CSV_PLAYERS, PLAYER_PHOTO_MAP, CSV_LEAGUE_TABLE, CSV_FIXTURES_RESULTS, CSV_FIXTURES_UPCOMING
     
-    # Root directory is 4 levels up from app/core/database.py (repository root)
+    # Try repository root first (4 levels up from app/core/database.py)
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
     
+    # Fallback to backend folder (3 levels up from app/core/database.py) if CSVs are placed locally
+    if not os.path.exists(os.path.join(base_dir, "TeamData.csv")):
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
     # ── Load Player Photo Map ──
     photo_map_path = os.path.join(base_dir, "backend", "player_photo_map.json")
+    if not os.path.exists(photo_map_path):
+        photo_map_path = os.path.join(base_dir, "player_photo_map.json")
+
     if os.path.exists(photo_map_path):
         try:
             with open(photo_map_path, "r") as f:
