@@ -162,3 +162,50 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-500;
 }
+
+/* 🌀 Premium Spinning Radial Menu Effects */
+@keyframes spinOpen {
+  from {
+    transform: translate(-50%, -50%) rotate(-270deg) scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseBorder {
+  0%, 100% {
+    border-color: rgba(99, 102, 241, 0.35);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.15), inset 0 0 10px rgba(99, 102, 241, 0.05);
+  }
+  50% {
+    border-color: rgba(6, 182, 212, 0.7);
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.3), inset 0 0 15px rgba(6, 182, 212, 0.1);
+  }
+}
+
+@keyframes itemEnter {
+  from {
+    transform: scale(0) rotate(180deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.radial-spin-menu {
+  animation: spinOpen 550ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.radial-ring-pulse {
+  animation: pulseBorder 3s infinite ease-in-out;
+}
+
+.radial-item-enter {
+  animation: itemEnter 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+

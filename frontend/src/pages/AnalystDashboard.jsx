@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Trophy, Activity, Target, Shield, Calendar, Search, X, ChevronRight, AlertCircle, RefreshCw } from 'lucide-react';
+import { Trophy, Activity, Target, Shield, Calendar, Search, X, ChevronRight, AlertCircle, RefreshCw, Sparkles, Users, Brain } from 'lucide-react';
 import { predictionService } from '../services/predictionService';
 import { teamService } from '../services/teamService';
 
@@ -12,6 +12,13 @@ export default function AnalystDashboard() {
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // 🌀 Spinning Radial Action Menu States
+  const [radialMatch, setRadialMatch] = useState(null);
+  const [radialCoords, setRadialCoords] = useState({ x: 0, y: 0 });
+  const [predictionLoading, setPredictionLoading] = useState(false);
+  const [radialPrediction, setRadialPrediction] = useState(null);
+
 
   useEffect(() => {
     fetchData();
@@ -198,7 +205,12 @@ export default function AnalystDashboard() {
                     return (
                       <tr 
                         key={match.id || idx} 
-                        onClick={() => setSelectedMatch(match)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setRadialCoords({ x: e.clientX, y: e.clientY });
+                          setRadialMatch(match);
+                          setRadialPrediction(null);
+                        }}
                         className="border-b border-kw-surface-variant hover:bg-kw-surface transition-colors cursor-pointer"
                       >
                         <td className="px-4 py-4 text-kw-outline-variant whitespace-nowrap">{match.date}</td>
@@ -327,6 +339,140 @@ export default function AnalystDashboard() {
           </div>
         </div>
       )}
+
+      {/* 🌀 Circular Radial Spinning Menu Overlay */}
+      {radialMatch && (
+        <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]" onClick={() => setRadialMatch(null)}>
+          <div 
+            className="absolute radial-spin-menu flex items-center justify-center pointer-events-auto"
+            style={{ 
+              left: `${Math.min(window.innerWidth - 180, Math.max(180, radialCoords.x))}px`, 
+              top: `${Math.min(window.innerHeight - 180, Math.max(180, radialCoords.y))}px` 
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Outer Pulsing Glow Border Circle */}
+            <div className="w-[200px] h-[200px] rounded-full border border-primary/30 radial-ring-pulse bg-[#030307e0] backdrop-blur-xl absolute flex items-center justify-center shadow-[0_0_50px_rgba(99,102,241,0.25)]">
+              {/* Inner crosslines for tactical HUD vibe */}
+              <div className="absolute inset-0 rounded-full border border-white/5 pointer-events-none"></div>
+              <div className="absolute top-1/2 left-0 right-0 h-px bg-white/5 pointer-events-none"></div>
+              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/5 pointer-events-none"></div>
+            </div>
+
+            {/* RADIAL ITEM 1: Diagnostic Details (Top, 0 deg) */}
+            <button
+              onClick={() => {
+                setSelectedMatch(radialMatch);
+                setRadialMatch(null);
+              }}
+              className="radial-item-enter absolute flex flex-col items-center justify-center w-12 h-12 rounded-full border border-primary/40 bg-black/60 hover:bg-primary hover:text-[#0e0e0e] hover:shadow-[0_0_20px_rgba(99,102,241,0.6)] text-primary transition-all duration-300 group cursor-pointer"
+              style={{ 
+                transform: 'translate(0px, -70px)', 
+                animationDelay: '100ms'
+              }}
+              title="Show Detailed Match Resolution"
+            >
+              <Activity className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span className="absolute whitespace-nowrap text-[8px] font-black uppercase tracking-widest text-neutral-400 bg-black/80 border border-white/10 px-1.5 py-0.5 rounded -top-7 group-hover:text-primary transition-colors">
+                Diagnostic
+              </span>
+            </button>
+
+            {/* RADIAL ITEM 2: Run AI Outcome Prediction (Bottom Left, 120 deg) */}
+            <button
+              onClick={async () => {
+                if (predictionLoading) return;
+                setPredictionLoading(true);
+                try {
+                  const data = await predictionService.predictMatchOutcome(
+                    radialMatch.home_team_id,
+                    radialMatch.away_team_id
+                  );
+                  setRadialPrediction(data);
+                } catch (err) {
+                  console.error(err);
+                  alert("Prediction failed: " + err.message);
+                } finally {
+                  setPredictionLoading(false);
+                }
+              }}
+              className="radial-item-enter absolute flex flex-col items-center justify-center w-12 h-12 rounded-full border border-secondary/40 bg-black/60 hover:bg-secondary hover:text-[#0e0e0e] hover:shadow-[0_0_20px_rgba(6,182,212,0.6)] text-secondary transition-all duration-300 group cursor-pointer"
+              style={{ 
+                transform: 'translate(-60px, 35px)', 
+                animationDelay: '200ms'
+              }}
+              title="Simulate AI Prediction"
+            >
+              {predictionLoading ? (
+                <RefreshCw className="w-5 h-5 animate-spin" />
+              ) : (
+                <Brain className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              )}
+              <span className="absolute whitespace-nowrap text-[8px] font-black uppercase tracking-widest text-neutral-400 bg-black/80 border border-white/10 px-1.5 py-0.5 rounded -bottom-7 group-hover:text-secondary transition-colors">
+                Predict AI
+              </span>
+            </button>
+
+            {/* RADIAL ITEM 3: Compare Team Rosters (Bottom Right, 240 deg) */}
+            <button
+              onClick={() => {
+                const homeName = radialMatch.home?.name || 'Home Franchise';
+                const awayName = radialMatch.away?.name || 'Visiting Franchise';
+                alert(`Tactical Matchup:\n\n${homeName} (Host)\n   vs\n${awayName} (Visitor)\n\nBoth squads fully synchronized under Season 11 data registers.`);
+                setRadialMatch(null);
+              }}
+              className="radial-item-enter absolute flex flex-col items-center justify-center w-12 h-12 rounded-full border border-tertiary/40 bg-black/60 hover:bg-tertiary hover:text-[#0e0e0e] hover:shadow-[0_0_20px_rgba(236,72,153,0.6)] text-tertiary transition-all duration-300 group cursor-pointer"
+              style={{ 
+                transform: 'translate(60px, 35px)', 
+                animationDelay: '300ms'
+              }}
+              title="Compare Roster Rosters"
+            >
+              <Users className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span className="absolute whitespace-nowrap text-[8px] font-black uppercase tracking-widest text-neutral-400 bg-black/80 border border-white/10 px-1.5 py-0.5 rounded -bottom-7 group-hover:text-tertiary transition-colors">
+                Matchup
+              </span>
+            </button>
+
+            {/* Center Close Circle */}
+            <button
+              onClick={() => setRadialMatch(null)}
+              className="absolute w-10 h-10 rounded-full border border-white/15 bg-black hover:bg-error hover:text-white hover:border-error text-neutral-400 flex items-center justify-center transition-all duration-300 cursor-pointer shadow-inner z-10"
+              title="Cancel Override"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Inline AI Prediction Result HUD Overlay inside menu */}
+            {radialPrediction && (
+              <div className="absolute w-[220px] bg-black/95 border border-secondary/30 rounded-xl p-3 text-center transition-all duration-500 scale-95 top-[120px] shadow-[0_15px_30px_rgba(0,0,0,0.8)] z-20 animate-in fade-in slide-in-from-top-4 duration-300">
+                <p className="text-[7px] font-black text-secondary tracking-[0.25em] uppercase mb-1 flex items-center justify-center gap-1">
+                  <Sparkles className="w-2.5 h-2.5 text-secondary" /> AI Prediction HUD
+                </p>
+                <div className="flex justify-between items-center gap-2 mt-1.5 border-t border-white/5 pt-1.5">
+                  <div className="text-left">
+                    <p className="text-[7px] text-neutral-500 font-bold uppercase truncate max-w-[80px]">{radialMatch.home?.name}</p>
+                    <p className="text-xs font-black text-white">{Math.round(radialPrediction.home_win_probability * 100)}%</p>
+                  </div>
+                  <div className="h-6 w-px bg-white/10"></div>
+                  <div className="text-right">
+                    <p className="text-[7px] text-neutral-500 font-bold uppercase truncate max-w-[80px]">{radialMatch.away?.name}</p>
+                    <p className="text-xs font-black text-white">{Math.round(radialPrediction.away_win_probability * 100)}%</p>
+                  </div>
+                </div>
+                <div className="mt-2 w-full bg-white/5 h-1 rounded-full overflow-hidden flex">
+                  <div className="bg-secondary h-full" style={{ width: `${radialPrediction.home_win_probability * 100}%` }}></div>
+                  <div className="bg-tertiary h-full flex-1"></div>
+                </div>
+                <p className="text-[7px] text-secondary font-black uppercase mt-1.5 tracking-wider">
+                  Forecast: {radialPrediction.winner_forecast}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
