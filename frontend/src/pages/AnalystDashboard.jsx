@@ -19,6 +19,57 @@ export default function AnalystDashboard() {
   const [predictionLoading, setPredictionLoading] = useState(false);
   const [radialPrediction, setRadialPrediction] = useState(null);
 
+  // 🎡 Spinning Wheel Match Selector States
+  const [isSpinnerOpen, setIsSpinnerOpen] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [spinResult, setSpinResult] = useState(null);
+  const [spinnerMatches, setSpinnerMatches] = useState([]);
+  const wheelRef = React.useRef(null);
+
+  const handleOpenSpinner = () => {
+    // Pick first 8 fixtures or available
+    const topMatches = fixtures.slice(0, 8);
+    setSpinnerMatches(topMatches);
+    setIsSpinnerOpen(true);
+    setSpinResult(null);
+    setIsSpinning(false);
+  };
+
+  const handleSpinWheel = () => {
+    if (isSpinning || spinnerMatches.length === 0) return;
+    setIsSpinning(true);
+    setSpinResult(null);
+
+    // Pick a random target match index
+    const targetIdx = Math.floor(Math.random() * spinnerMatches.length);
+    const targetMatch = spinnerMatches[targetIdx];
+
+    // SVG parameters
+    const segmentCount = spinnerMatches.length;
+    const segmentAngle = 360 / segmentCount;
+    const extraSpins = 6 * 360; // 6 full cycles
+    // Target segment angle centers the indicator
+    const targetSegmentAngle = targetIdx * segmentAngle;
+    const totalRotationAngle = extraSpins + (360 - targetSegmentAngle) - (segmentAngle / 2);
+
+    if (wheelRef.current) {
+      wheelRef.current.style.transition = 'transform 4.5s cubic-bezier(0.15, 0.95, 0.15, 1)';
+      wheelRef.current.style.transform = `rotate(${totalRotationAngle}deg)`;
+    }
+
+    setTimeout(() => {
+      setIsSpinning(false);
+      setSpinResult(targetMatch);
+      // Wait 1.5 seconds, then open the diagnostic scoreboard overlay modal for the selected match!
+      setTimeout(() => {
+        setSelectedMatch(targetMatch);
+        setIsSpinnerOpen(false);
+        setSpinResult(null);
+      }, 1500);
+    }, 4600); // Wait for the transition to complete
+  };
+
+
 
   useEffect(() => {
     fetchData();
@@ -169,15 +220,23 @@ export default function AnalystDashboard() {
               <Calendar className="w-5 h-5 mr-3 text-kw-primary" />
               Event Log Analysis
             </h2>
-            <div className="relative w-full sm:w-64 border-b border-kw-surface-variant focus-within:border-kw-primary transition-colors">
-              <Search className="w-4 h-4 absolute left-3 top-3.5 text-kw-outline" />
-              <input 
-                type="text" 
-                placeholder="FILTER LOGS..." 
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="w-full bg-kw-surface-container-low pl-10 pr-4 py-3 font-mono text-sm text-white focus:outline-none no-round placeholder-kw-outline-variant" 
-              />
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <button 
+                onClick={handleOpenSpinner}
+                className="flex items-center gap-2 bg-primary/10 border border-primary/30 text-primary hover:bg-primary hover:text-black hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] transition-all duration-300 px-4 py-2 font-mono text-xs uppercase tracking-widest font-black shrink-0"
+              >
+                <RefreshCw className="w-3.5 h-3.5" /> TACTICAL WHEEL
+              </button>
+              <div className="relative w-full sm:w-64 border-b border-kw-surface-variant focus-within:border-kw-primary transition-colors">
+                <Search className="w-4 h-4 absolute left-3 top-3.5 text-kw-outline" />
+                <input 
+                  type="text" 
+                  placeholder="FILTER LOGS..." 
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="w-full bg-kw-surface-container-low pl-10 pr-4 py-3 font-mono text-sm text-white focus:outline-none no-round placeholder-kw-outline-variant" 
+                />
+              </div>
             </div>
         </div>
 
@@ -472,7 +531,156 @@ export default function AnalystDashboard() {
           </div>
         </div>
       )}
+      {/* 🎡 Spinning Wheel Match Selector Modal Overlay */}
+      {isSpinnerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center spinner-modal-backdrop p-4">
+          <div className="solid-card-high no-round w-full max-w-lg border-t-4 border-primary relative p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl flex flex-col items-center">
+            
+            {/* Modal Header */}
+            <div className="w-full flex items-center justify-between pb-4 border-b border-white/5 mb-6">
+              <h3 className="text-sm font-bold font-mono text-kw-outline uppercase tracking-[0.25em] flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary animate-pulse" /> Tactical Resolution Spinner
+              </h3>
+              <button 
+                onClick={() => setIsSpinnerOpen(false)}
+                disabled={isSpinning}
+                className="text-neutral-500 hover:text-error transition-colors disabled:opacity-30 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Wheel Description */}
+            <p className="text-center font-mono text-[10px] text-neutral-400 uppercase tracking-wider mb-6 max-w-sm">
+              Spin the tactical dial to select a random completed fixture record and retrieve its diagnostic analytical report.
+            </p>
+
+            {/* Selector Pointer Arrow (Top) */}
+            <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[20px] border-t-error z-20 mb-[-10px] spinner-ticker"></div>
+
+            {/* The SVG Wheel */}
+            <div className="w-[320px] h-[320px] rounded-full spinner-outer-ring relative overflow-hidden flex items-center justify-center select-none shadow-[0_0_50px_rgba(99,102,241,0.15)] mb-6">
+              <svg 
+                ref={wheelRef}
+                viewBox="0 0 200 200" 
+                className="w-full h-full transform origin-center transition-transform"
+                style={{ transform: 'rotate(0deg)' }}
+              >
+                {/* Dynamically draw segment slices */}
+                {spinnerMatches.map((match, idx) => {
+                  const segmentCount = spinnerMatches.length;
+                  const segmentAngle = 360 / segmentCount;
+                  const startAngle = idx * segmentAngle;
+                  const endAngle = startAngle + segmentAngle;
+
+                  // Math to calculate SVG arc path
+                  const polarToCartesian = (centerX, centerY, radius, angleInDegrees) => {
+                    const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+                    return {
+                      x: centerX + radius * Math.cos(angleInRadians),
+                      y: centerY + radius * Math.sin(angleInRadians),
+                    };
+                  };
+
+                  const start = polarToCartesian(100, 100, 95, startAngle);
+                  const end = polarToCartesian(100, 100, 95, endAngle);
+                  const largeArcFlag = segmentAngle <= 180 ? '0' : '1';
+
+                  const d = [
+                    'M', 100, 100,
+                    'L', start.x, start.y,
+                    'A', 95, 95, 0, largeArcFlag, 1, end.x, end.y,
+                    'Z'
+                  ].join(' ');
+
+                  // Colors alternating nicely
+                  const colors = [
+                    'rgba(99, 102, 241, 0.12)', // Indigo
+                    'rgba(6, 182, 212, 0.08)',  // Cyan
+                    'rgba(236, 72, 153, 0.06)',  // Pink
+                    'rgba(234, 179, 8, 0.08)',   // Yellow
+                  ];
+                  const fill = colors[idx % colors.length];
+                  
+                  // Calculate text positioning centered in segment
+                  const textAngle = startAngle + segmentAngle / 2;
+                  const textPos = polarToCartesian(100, 100, 65, textAngle);
+
+                  // Short alias names for segments (e.g. BLR vs BEN)
+                  const getShortName = (name) => {
+                    if (!name) return 'SQD';
+                    const parts = name.split(' ');
+                    if (parts.length >= 2) return parts.map(p => p[0]).join('').toUpperCase();
+                    return name.substring(0, 3).toUpperCase();
+                  };
+                  const label = `${getShortName(match.home?.name)} v ${getShortName(match.away?.name)}`;
+
+                  return (
+                    <g key={idx}>
+                      <path 
+                        d={d} 
+                        fill={fill} 
+                        stroke="rgba(255,255,255,0.06)" 
+                        strokeWidth="0.7" 
+                      />
+                      <text
+                        x={textPos.x}
+                        y={textPos.y}
+                        fill="rgba(255,255,255,0.7)"
+                        fontSize="6"
+                        fontWeight="black"
+                        textAnchor="middle"
+                        alignmentBaseline="middle"
+                        transform={`rotate(${textAngle}, ${textPos.x}, ${textPos.y})`}
+                        className="spinner-slice-text font-black uppercase text-[6px] opacity-80"
+                      >
+                        {label}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Inner decorative HUD circles */}
+                <circle cx="100" cy="100" r="18" fill="#030307" stroke="rgba(99,102,241,0.3)" strokeWidth="1.5" />
+                <circle cx="100" cy="100" r="10" fill="#09090f" />
+                <circle cx="100" cy="100" r="3" fill="#ff4d4d" />
+              </svg>
+            </div>
+
+            {/* Spin / Status Button */}
+            <button
+              onClick={handleSpinWheel}
+              disabled={isSpinning || spinnerMatches.length === 0}
+              className="px-8 py-3.5 bg-primary text-black font-black font-sans uppercase tracking-[0.2em] text-xs hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:pointer-events-none transition-all w-full flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(99,102,241,0.35)]"
+            >
+              {isSpinning ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin text-black" /> COMPUTING TACTICAL ORBITS...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 text-black animate-pulse" /> INITIATE TACTICAL SPIN
+                </>
+              )}
+            </button>
+
+            {/* Spinner Result HUD Banner */}
+            {spinResult && (
+              <div className="mt-4 w-full text-center bg-green-500/10 border border-green-500/40 rounded-xl p-3 animate-pulse">
+                <p className="text-[8px] font-black text-green-400 tracking-widest uppercase">Target Vector Confirmed</p>
+                <p className="text-[11px] font-black text-white font-headline uppercase mt-1">
+                  {spinResult.home?.name} VS {spinResult.away?.name}
+                </p>
+                <p className="text-[8px] text-neutral-500 font-bold uppercase tracking-wider mt-0.5">
+                  Resolution Loaded — Booting Report...
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
     </div>
   );
 }
+
